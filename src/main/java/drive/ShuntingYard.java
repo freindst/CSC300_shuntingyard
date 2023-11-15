@@ -65,7 +65,7 @@ public class ShuntingYard {
         while (!operatorStack.isEmpty()) {
             this.ReversePolish.enqueue(operatorStack.pop()); // Pop any remaining operators to output
         }
-    	}
+    }
     public static boolean hasHigherPrecedence(String op1, String op2) {
         int precedenceOp1 = getPrecedence(op1);
         int precedenceOp2 = getPrecedence(op2);
