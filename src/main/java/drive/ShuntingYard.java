@@ -4,7 +4,7 @@ public class ShuntingYard {
     public LinkedList Tokens;
 
     public OutputQueue ReversePolish;
-
+    
     public ShuntingYard(){
         this.Tokens = new LinkedList();
         this.ReversePolish = new OutputQueue();
@@ -33,9 +33,59 @@ public class ShuntingYard {
      * 13. While there are operators on the stack, pop them to the queue
      */
     //take the tokens from Tokens queue, and stored the reversed polish expression in ReversePolish queue
-    public void process(){
-        //to do
+    public void process()
+    {
+        Node tempNode = this.Tokens.Head;
+        OpStack operatorStack = new OpStack();
+
+        while (tempNode != null) {
+            String token = tempNode.Data;
+
+            if (token.matches("0|1|2|3|4|5|6|7|8|9")) {
+                this.ReversePolish.enqueue(token); // If it's a number, add it directly to the output queue
+            } else if (token.matches("+|-|/|*")) {
+                // If it's an operator
+                while (!operatorStack.isEmpty() && ShuntingYard.hasHigherPrecedence(operatorStack.peek().Data, token)) {
+                    this.ReversePolish.enqueue(operatorStack.pop()); // Pop higher precedence operators to output queue
+                }
+                operatorStack.push(token); // Push current operator onto the stack
+            } else if (token.equals("(")) {
+                operatorStack.push(token); // If it's a left bracket, push it onto the stack
+            } else if (token.equals(")")) {
+                // If it's a right bracket
+                while (!operatorStack.isEmpty() && !operatorStack.peek().equals("(")) {
+                    this.ReversePolish.enqueue(operatorStack.pop()); // Pop operators to output until left bracket
+                }
+                operatorStack.pop(); // Discard the left bracket
+            }
+
+            tempNode = tempNode.NextNode;
+        }
+        
+        while (!operatorStack.isEmpty()) {
+            this.ReversePolish.enqueue(operatorStack.pop()); // Pop any remaining operators to output
+        }
+    	}
+    public static boolean hasHigherPrecedence(String op1, String op2) {
+        int precedenceOp1 = getPrecedence(op1);
+        int precedenceOp2 = getPrecedence(op2);
+
+        return precedenceOp1 >= precedenceOp2;
     }
+
+    private static int getPrecedence(String operator) {
+        switch (operator) {
+            case "+":
+            case "-":
+                return 1;
+            case "*":
+            case "/":
+                return 2;
+            default:
+                return 0; // If it's not a recognized operator, assign the lowest precedence
+        }
+    }
+
 
     /*
      * 1. Tokens on queue dequeue() one by one
