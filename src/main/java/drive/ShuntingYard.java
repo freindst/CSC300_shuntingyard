@@ -48,7 +48,10 @@ public class ShuntingYard {
     //process use the reverse polish format of expression to process the math result
     //output: the math result of the expression
     public int run(){
-        //to do
+        OPStack temp = new OPstack();
+        for(int i = 0; i < ReversePolish.getLength(); i++) {
+        	
+        }
         throw new Error("waiting for implement");
     }
 
