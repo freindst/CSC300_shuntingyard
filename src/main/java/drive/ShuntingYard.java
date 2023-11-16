@@ -13,36 +13,44 @@ public class ShuntingYard {
     //parse a math expression into a linked list
     //input: the math expression as a string
     //parsed result will stored in Tokens linked list
-        public void parse(String input){
+    public void parse(String input){
     	OpStack operatorStack = new OpStack();
-    	
+    	boolean lastWasNum = false;
     	 for (int i = 0; i < input.length(); i++) {
     	        Character currentChar = input.charAt(i);
 
     	        if (currentChar == '(') {
     	            operatorStack.push(Character.toString(currentChar));
+    	            lastWasNum = false;
     	        } else if (currentChar == ')') {
     	            // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
     	            while (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) != '(') {
-    	                ReversePolish.enqueue(operatorStack.pop().Data.toString());
-    	                ReversePolish.enqueue(" ");
+    	            	ReversePolish.enqueue(" ");
+    	            	ReversePolish.enqueue(operatorStack.pop().Data.toString());
     	            }
     	            if (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) == '(') {
     	                operatorStack.pop(); // Discard the '('
     	            }
+    	            lastWasNum = false;
     	        } else if (currentChar == '*' || currentChar == '/' || currentChar == '+' || currentChar == '-') {
     	            // Pop operators from the stack and append to reversePolish until the stack is empty or
     	            // the top operator has lower precedence than the current operator
     	            while (!operatorStack.isEmpty() && ShuntingYard.precedence(operatorStack.peek().Data.charAt(0)) >= ShuntingYard.precedence(currentChar)) {
-    	                ReversePolish.enqueue((operatorStack.pop().Data));
     	                
-    	                ReversePolish.enqueue(" ");
+    	            	ReversePolish.enqueue(" ");
+    	            	ReversePolish.enqueue((operatorStack.pop().Data));
+    	                
     	            }
     	            operatorStack.push(currentChar.toString());
+    	            lastWasNum = false;
     	        } else {
     	            // Operand
+    	        	if(!lastWasNum) {
+    	        		ReversePolish.enqueue(" ");
+    	        	}
     	            ReversePolish.enqueue(currentChar.toString());
-    	            ReversePolish.enqueue(" ");
+    	            lastWasNum = true;
+    	           // ReversePolish.enqueue(" ");
     	        }
     	 }
     	 
@@ -73,7 +81,6 @@ public class ShuntingYard {
                 return 0; // Assume all other characters have lower precedence
         }
     }
-
     /*
      * 1.  While there are tokens to be read:
      * 2.        Read a token
