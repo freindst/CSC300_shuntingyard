@@ -9,7 +9,6 @@ public class OutputQueue extends Queue{
 
     @Override
     public Node dequeue() {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'dequeue'");
     }
 
