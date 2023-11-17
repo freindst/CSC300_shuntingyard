@@ -25,8 +25,6 @@ public class ShuntingYard {
             }
         }
     }
-    	
-    
     
     public static int precedence(char operator) {
         switch (operator) {
@@ -36,6 +34,9 @@ public class ShuntingYard {
             case '*':
             case '/':
                 return 2;
+            case '(':
+            case '}':
+                return 4;
             default:
                 return 0; // Assume all other characters have lower precedence
         }
@@ -58,58 +59,34 @@ public class ShuntingYard {
     //take the tokens from Tokens queue, and stored the reversed polish expression in ReversePolish queue
     public void process(){
         OpStack operatorStack = new OpStack();
-    	boolean lastWasNum = false;
-    	 for (int i = 0; i < input.length(); i++) {
-    	        Character currentChar = input.charAt(i);
-
-    	        if (currentChar == '(') {
-    	            operatorStack.push(Character.toString(currentChar));
-    	            lastWasNum = false;
-    	        } else if (currentChar == ')') {
-    	            // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
-    	            while (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) != '(') {
-    	            	ReversePolish.enqueue(" ");
-    	            	ReversePolish.enqueue(operatorStack.pop().Data.toString());
-    	            }
-    	            if (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) == '(') {
-    	                operatorStack.pop(); // Discard the '('
-    	            }
-    	            lastWasNum = false;
-    	        } else if (currentChar == '*' || currentChar == '/' || currentChar == '+' || currentChar == '-') {
-    	            // Pop operators from the stack and append to reversePolish until the stack is empty or
-    	            // the top operator has lower precedence than the current operator
-    	            while (!operatorStack.isEmpty() && ShuntingYard.precedence(operatorStack.peek().Data.charAt(0)) >= ShuntingYard.precedence(currentChar)) {
-    	                
-    	            	ReversePolish.enqueue(" ");
-    	            	ReversePolish.enqueue((operatorStack.pop().Data));
-    	                
-    	            }
-    	            operatorStack.push(currentChar.toString());
-    	            lastWasNum = false;
-    	        } else {
-    	            // Operand
-    	        	if(!lastWasNum) {
-    	        		ReversePolish.enqueue(" ");
-    	        	}
-    	            ReversePolish.enqueue(currentChar.toString());
-    	            lastWasNum = true;
-    	           // ReversePolish.enqueue(" ");
-    	        }
+        Node token = this.Tokens.Head;
+        while(token != null){
+            Character currentChar = token.Data.charAt(0);
+            if (currentChar == '(') {
+                operatorStack.push(Character.toString(currentChar));
+            } else if (currentChar == ')') {
+                // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
+                while (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) != '(') {
+                    ReversePolish.enqueue(operatorStack.pop().Data);
+                }
+                if (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) == '(') {
+                    operatorStack.pop(); // Discard the '('
+                }
+            } else if (currentChar == '*' || currentChar == '/' || currentChar == '+' || currentChar == '-') {
+                // Pop operators from the stack and append to reversePolish until the stack is empty or
+                // the top operator has lower precedence than the current operator
+                while (!operatorStack.isEmpty() && ShuntingYard.precedence(operatorStack.peek().Data.charAt(0)) >= ShuntingYard.precedence(currentChar)) {
+                    ReversePolish.enqueue((operatorStack.pop().Data));
+                }
+                operatorStack.push(currentChar.toString());
+            } else {
+                // Operand
+                this.ReversePolish.enqueue(token.Data);
+            }
     	 }
-    	 
     	 while (!operatorStack.isEmpty()) {
-    	        ReversePolish.enqueue(operatorStack.pop().toString());
-    	        ReversePolish.enqueue(" ");
-    	    }
-
-    	    // Print or return the Reverse Polish Notation
-    	 	Node currNode = ReversePolish.vals.Head;
-    	    for(int i = 0; i < ReversePolish.getLength()-2; i++) {
-    	    	
-    	    	System.out.println(currNode.Data);
-    	    	currNode = currNode.NextNode;
-    	    }
-    	}
+            ReversePolish.enqueue(operatorStack.pop().Data);
+        }
     }
 
     /*
