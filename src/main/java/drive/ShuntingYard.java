@@ -48,8 +48,31 @@ public class ShuntingYard {
     //process use the reverse polish format of expression to process the math result
     //output: the math result of the expression
     public int run(){
-        //to do
-        throw new Error("waiting for implement");
+        OpStack tempstack = new OpStack();
+        String temp;
+        String s = "*+/-";
+        int x;
+        int y;
+        while(ReversePolish.isEmpty()) {
+        	temp = ReversePolish.dequeue().Data;
+        	if(temp.indexOf(s) >= 0) {
+        		x = Integer.parseInt(tempstack.pop().Data);
+        		y = Integer.parseInt(tempstack.pop().Data);
+        		if(temp.charAt(0) == s.charAt(0)) {
+        			x = y * x;
+        		} else if (temp.charAt(0) == s.charAt(1)) {
+        			x = y + x;
+        		} else if (temp.charAt(0) == s.charAt(2)) {
+        			x = y / x;
+        		} else {
+        			x = y - x;
+        		}
+        		tempstack.push(Integer.toString(x));
+        	} else {
+        		tempstack.push(temp);
+        	}
+        }
+        return Integer.parseInt(tempstack.pop().Data);
     }
 
     
