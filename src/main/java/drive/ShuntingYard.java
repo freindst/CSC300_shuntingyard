@@ -14,7 +14,16 @@ public class ShuntingYard {
     //input: the math expression as a string
     //parsed result will stored in Tokens linked list
     public void parse(String input){
-
+        String numbers = "0123456789";
+        String temp = "";
+        for(int i = 0; i < input.length(); i++){
+            if (numbers.indexOf(input.charAt(i)) >= 0){
+                temp += input.charAt(i);
+            } else {
+                this.Tokens.append(temp);
+                temp = "";
+            }
+        }
     }
 
     /*
