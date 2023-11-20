@@ -27,6 +27,9 @@ public class ShuntingYard {
                 this.Tokens.append(Character.toString(input.charAt(i)));
             }
         }
+        if (temp != null && temp.length() > 0){
+            this.Tokens.append(temp);
+        }
     }
     
     /*
