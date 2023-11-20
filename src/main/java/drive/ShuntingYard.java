@@ -4,7 +4,7 @@ public class ShuntingYard {
     public LinkedList Tokens;
 
     public OutputQueue ReversePolish;
-    
+
     public ShuntingYard(){
         this.Tokens = new LinkedList();
         this.ReversePolish = new OutputQueue();
@@ -14,9 +14,21 @@ public class ShuntingYard {
     //input: the math expression as a string
     //parsed result will stored in Tokens linked list
     public void parse(String input){
-
+        String numbers = "0123456789";
+        String temp = "";
+        for(int i = 0; i < input.length(); i++){
+            if (numbers.indexOf(input.charAt(i)) >= 0){
+                temp += input.charAt(i);
+            } else {
+                if (temp.length()>0){
+                    this.Tokens.append(temp);
+                }
+                temp = "";
+                this.Tokens.append(Character.toString(input.charAt(i)));
+            }
+        }
     }
-
+    
     /*
      * 1.  While there are tokens to be read:
      * 2.        Read a token
@@ -33,59 +45,37 @@ public class ShuntingYard {
      * 13. While there are operators on the stack, pop them to the queue
      */
     //take the tokens from Tokens queue, and stored the reversed polish expression in ReversePolish queue
-    public void process()
-    {
-        Node tempNode = this.Tokens.Head;
+    public void process(){
         OpStack operatorStack = new OpStack();
-
-        while (tempNode != null) {
-            String token = tempNode.Data;
-
-            if (token.matches("0|1|2|3|4|5|6|7|8|9")) {
-                this.ReversePolish.enqueue(token); // If it's a number, add it directly to the output queue
-            } else if (token.matches("+|-|/|*")) {
-                // If it's an operator
-                while (!operatorStack.isEmpty() && ShuntingYard.hasHigherPrecedence(operatorStack.peek().Data, token)) {
-                    this.ReversePolish.enqueue(operatorStack.pop()); // Pop higher precedence operators to output queue
+        Node token = this.Tokens.Head;
+        while(token != null){
+            if (operatorStack.IsLeftParenthesis(token.Data)) {
+                operatorStack.push(token.Data);
+            } else if (operatorStack.IsRightParenthesis(token.Data)) {
+                // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
+                while (!operatorStack.isEmpty() && !operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
+                    ReversePolish.enqueue(operatorStack.pop().Data);
                 }
-                operatorStack.push(token); // Push current operator onto the stack
-            } else if (token.equals("(")) {
-                operatorStack.push(token); // If it's a left bracket, push it onto the stack
-            } else if (token.equals(")")) {
-                // If it's a right bracket
-                while (!operatorStack.isEmpty() && !operatorStack.peek().equals("(")) {
-                    this.ReversePolish.enqueue(operatorStack.pop()); // Pop operators to output until left bracket
+                if (!operatorStack.isEmpty() && operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
+                    operatorStack.pop(); // Discard the '('
                 }
-                operatorStack.pop(); // Discard the left bracket
+            } else if (operatorStack.IsOperator(token.Data)) {
+                if (token.Data.charAt(0) == '+' || token.Data.charAt(0) == '-'){
+                    while(!operatorStack.isEmpty() && (operatorStack.peek().Data.charAt(0) == '*' || operatorStack.peek().Data.charAt(0) == '/')){
+                        this.ReversePolish.enqueue(operatorStack.pop().Data);
+                    }
+                }
+                operatorStack.push(token.Data);
+            } else {
+                // Operand
+                this.ReversePolish.enqueue(token.Data);
             }
-
-            tempNode = tempNode.NextNode;
-        }
-        
-        while (!operatorStack.isEmpty()) {
-            this.ReversePolish.enqueue(operatorStack.pop()); // Pop any remaining operators to output
+            token = token.NextNode;
+    	 }
+    	 while (!operatorStack.isEmpty()) {
+            ReversePolish.enqueue(operatorStack.pop().Data);
         }
     }
-    public static boolean hasHigherPrecedence(String op1, String op2) {
-        int precedenceOp1 = getPrecedence(op1);
-        int precedenceOp2 = getPrecedence(op2);
-
-        return precedenceOp1 >= precedenceOp2;
-    }
-
-    private static int getPrecedence(String operator) {
-        switch (operator) {
-            case "+":
-            case "-":
-                return 1;
-            case "*":
-            case "/":
-                return 2;
-            default:
-                return 0; // If it's not a recognized operator, assign the lowest precedence
-        }
-    }
-
 
     /*
      * 1. Tokens on queue dequeue() one by one
@@ -98,8 +88,34 @@ public class ShuntingYard {
     //process use the reverse polish format of expression to process the math result
     //output: the math result of the expression
     public int run(){
-        //to do
-        throw new Error("waiting for implement");
+        OpStack tempstack = new OpStack();
+        while(!ReversePolish.isEmpty()) {
+        	String temp = ReversePolish.dequeue().Data;
+        	if(tempstack.IsOperator(temp)) {
+        		int x = Integer.parseInt(tempstack.pop().Data);
+        		int y = Integer.parseInt(tempstack.pop().Data);
+                switch (temp.charAt(0)) {
+                    case '*':
+                        x = y * x;
+                        break;
+                    case '/':
+                        x = y / x;
+                        break;
+                    case '+':
+                        x = y + x;
+                        break;
+                    case '-':
+                        x = y - x;
+                        break;
+                    default:
+                        break;
+                }
+        		tempstack.push(Integer.toString(x));
+        	} else {
+        		tempstack.push(temp);
+        	}
+        }
+        return Integer.parseInt(tempstack.pop().Data);
     }
 
     
