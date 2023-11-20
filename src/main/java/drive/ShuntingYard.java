@@ -20,27 +20,15 @@ public class ShuntingYard {
             if (numbers.indexOf(input.charAt(i)) >= 0){
                 temp += input.charAt(i);
             } else {
-                this.Tokens.append(temp);
+                if (temp.length()>0){
+                    this.Tokens.append(temp);
+                }
                 temp = "";
+                this.Tokens.append(Character.toString(input.charAt(i)));
             }
         }
     }
     
-    public static int precedence(char operator) {
-        switch (operator) {
-            case '+':
-            case '-':
-                return 1;
-            case '*':
-            case '/':
-                return 2;
-            case '(':
-            case '}':
-                return 4;
-            default:
-                return 0; // Assume all other characters have lower precedence
-        }
-    }
     /*
      * 1.  While there are tokens to be read:
      * 2.        Read a token
@@ -61,28 +49,28 @@ public class ShuntingYard {
         OpStack operatorStack = new OpStack();
         Node token = this.Tokens.Head;
         while(token != null){
-            Character currentChar = token.Data.charAt(0);
-            if (currentChar == '(') {
-                operatorStack.push(Character.toString(currentChar));
-            } else if (currentChar == ')') {
+            if (operatorStack.IsLeftParenthesis(token.Data)) {
+                operatorStack.push(token.Data);
+            } else if (operatorStack.IsRightParenthesis(token.Data)) {
                 // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
-                while (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) != '(') {
+                while (!operatorStack.isEmpty() && !operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
                     ReversePolish.enqueue(operatorStack.pop().Data);
                 }
-                if (!operatorStack.isEmpty() && operatorStack.peek().Data.charAt(0) == '(') {
+                if (!operatorStack.isEmpty() && operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
                     operatorStack.pop(); // Discard the '('
                 }
-            } else if (currentChar == '*' || currentChar == '/' || currentChar == '+' || currentChar == '-') {
-                // Pop operators from the stack and append to reversePolish until the stack is empty or
-                // the top operator has lower precedence than the current operator
-                while (!operatorStack.isEmpty() && ShuntingYard.precedence(operatorStack.peek().Data.charAt(0)) >= ShuntingYard.precedence(currentChar)) {
-                    ReversePolish.enqueue((operatorStack.pop().Data));
+            } else if (operatorStack.IsOperator(token.Data)) {
+                if (token.Data.charAt(0) == '+' || token.Data.charAt(0) == '-'){
+                    while(!operatorStack.isEmpty() && (operatorStack.peek().Data.charAt(0) == '*' || operatorStack.peek().Data.charAt(0) == '/')){
+                        this.ReversePolish.enqueue(operatorStack.pop().Data);
+                    }
                 }
-                operatorStack.push(currentChar.toString());
+                operatorStack.push(token.Data);
             } else {
                 // Operand
                 this.ReversePolish.enqueue(token.Data);
             }
+            token = token.NextNode;
     	 }
     	 while (!operatorStack.isEmpty()) {
             ReversePolish.enqueue(operatorStack.pop().Data);
@@ -101,15 +89,11 @@ public class ShuntingYard {
     //output: the math result of the expression
     public int run(){
         OpStack tempstack = new OpStack();
-        String temp;
-        String s = "*+/-";
-        int x;
-        int y;
         while(!ReversePolish.isEmpty()) {
-        	temp = ReversePolish.dequeue().Data;
-        	if(temp.indexOf(s) >= 0) {
-        		x = Integer.parseInt(tempstack.pop().Data);
-        		y = Integer.parseInt(tempstack.pop().Data);
+        	String temp = ReversePolish.dequeue().Data;
+        	if(tempstack.IsOperator(temp)) {
+        		int x = Integer.parseInt(tempstack.pop().Data);
+        		int y = Integer.parseInt(tempstack.pop().Data);
                 switch (temp.charAt(0)) {
                     case '*':
                         x = y * x;
