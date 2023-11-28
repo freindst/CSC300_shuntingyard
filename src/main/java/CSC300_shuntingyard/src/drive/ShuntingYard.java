@@ -10,13 +10,28 @@ public class ShuntingYard {
         this.ReversePolish = new OutputQueue();
     }
 
-    //parse a math expression into a linked list
+  //parse a math expression into a linked list
     //input: the math expression as a string
     //parsed result will stored in Tokens linked list
     public void parse(String input){
-
+        String numbers = "0123456789";
+        String temp = "";
+        for(int i = 0; i < input.length(); i++){
+            if (numbers.indexOf(input.charAt(i)) >= 0){
+                temp += input.charAt(i);
+            } else {
+                if (temp.length()>0){
+                    this.Tokens.append(temp);
+                }
+                temp = "";
+                this.Tokens.append(Character.toString(input.charAt(i)));
+            }
+        }
+        if (temp != null && temp.length() > 0){
+            this.Tokens.append(temp);
+        }
     }
-
+    
     /*
      * 1.  While there are tokens to be read:
      * 2.        Read a token
@@ -34,7 +49,35 @@ public class ShuntingYard {
      */
     //take the tokens from Tokens queue, and stored the reversed polish expression in ReversePolish queue
     public void process(){
-        //to do
+        OpStack operatorStack = new OpStack();
+        Node token = this.Tokens.Head;
+        while(token != null){
+            if (operatorStack.IsLeftParenthesis(token.Data)) {
+                operatorStack.push(token.Data);
+            } else if (operatorStack.IsRightParenthesis(token.Data)) {
+                // Pop operators from the stack and append to reversePolish until an opening parenthesis is encountered
+                while (!operatorStack.isEmpty() && !operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
+                    ReversePolish.enqueue(operatorStack.pop().Data);
+                }
+                if (!operatorStack.isEmpty() && operatorStack.IsLeftParenthesis(operatorStack.peek().Data)) {
+                    operatorStack.pop(); // Discard the '('
+                }
+            } else if (operatorStack.IsOperator(token.Data)) {
+                if (token.Data.charAt(0) == '+' || token.Data.charAt(0) == '-'){
+                    while(!operatorStack.isEmpty() && (operatorStack.peek().Data.charAt(0) == '*' || operatorStack.peek().Data.charAt(0) == '/')){
+                        this.ReversePolish.enqueue(operatorStack.pop().Data);
+                    }
+                }
+                operatorStack.push(token.Data);
+            } else {
+                // Operand
+                this.ReversePolish.enqueue(token.Data);
+            }
+            token = token.NextNode;
+    	 }
+    	 while (!operatorStack.isEmpty()) {
+            ReversePolish.enqueue(operatorStack.pop().Data);
+        }
     }
 
     /*
@@ -49,24 +92,27 @@ public class ShuntingYard {
     //output: the math result of the expression
     public int run(){
         OpStack tempstack = new OpStack();
-        String temp;
-        String s = "*+/-";
-        int x;
-        int y;
-        while(ReversePolish.isEmpty()) {
-        	temp = ReversePolish.dequeue().Data;
-        	if(temp.indexOf(s) >= 0) {
-        		x = Integer.parseInt(tempstack.pop().Data);
-        		y = Integer.parseInt(tempstack.pop().Data);
-        		if(temp.charAt(0) == s.charAt(0)) {
-        			x = y * x;
-        		} else if (temp.charAt(0) == s.charAt(1)) {
-        			x = y + x;
-        		} else if (temp.charAt(0) == s.charAt(2)) {
-        			x = y / x;
-        		} else {
-        			x = y - x;
-        		}
+        while(!ReversePolish.isEmpty()) {
+        	String temp = ReversePolish.dequeue().Data;
+        	if(tempstack.IsOperator(temp)) {
+        		int x = Integer.parseInt(tempstack.pop().Data);
+        		int y = Integer.parseInt(tempstack.pop().Data);
+                switch (temp.charAt(0)) {
+                    case '*':
+                        x = y * x;
+                        break;
+                    case '/':
+                        x = y / x;
+                        break;
+                    case '+':
+                        x = y + x;
+                        break;
+                    case '-':
+                        x = y - x;
+                        break;
+                    default:
+                        break;
+                }
         		tempstack.push(Integer.toString(x));
         	} else {
         		tempstack.push(temp);
@@ -74,6 +120,5 @@ public class ShuntingYard {
         }
         return Integer.parseInt(tempstack.pop().Data);
     }
-
     
 }
